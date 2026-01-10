@@ -1,7 +1,7 @@
 import requests
 
 # 1. https://api.day.app/eRjoaMokHx5FK9qP4qRJu3/
-BARK_URL = "https://api.day.app/你的密钥/"
+BARK_URL = "https://api.day.app/eRjoaMokHx5FK9qP4qRJu3/"
 
 def check():
     url = "https://blood-records.co.uk/products.json"
