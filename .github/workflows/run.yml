@@ -1,0 +1,19 @@
+name: Vinyl Monitor
+on:
+  schedule:
+    - cron: '*/5 * * * *' # 每5分钟运行一次，完全免费
+  workflow_dispatch: # 允许你手动点击运行测试
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: pip install requests
+      - name: Run Monitor
+        run: python monitor.py
