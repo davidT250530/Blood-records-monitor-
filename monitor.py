@@ -16,18 +16,36 @@ MY_FAVORITES = ["Lana Del Rey","joji","sabrina carpenter ","Taylor Swift", "The 
 RT_API_URL = "https://www.roughtrade.com/en-gb/api/products?page=1&per_page=40"
 # ==========================================
 
-def get_value_score(title):
+def def get_value_score(title):
+    """
+    智能打分系统 2.0：
+    - 动效黑胶 (Zoetrope) 和 签名 (Signed) 权重最高
+    - 热门艺人直接触发警报
+    """
     score = 0
     title_lower = title.lower()
+    
+    # 1. 核心理财关键词（高权重）
+    if "zoetrope" in title_lower:
+        score += 80  # 动效黑胶（Bad World / Blood Records 特色），溢价极高
     if "signed" in title_lower or "autographed" in title_lower:
-        score += 60
+        score += 70  # 签名版
+        
+    # 2. 版本稀缺度关键词
     if "exclusive" in title_lower:
-        score += 30
+        score += 30  # 独家配色
+    if "numbered" in title_lower:
+        score += 40  # 独立编号（理财关键）
     if "limited" in title_lower:
-        score += 10
+        score += 10  # 普通限量
+        
+    # 3. 艺人白名单（只要出现即拉满分）
+    # 建议名单：Joji, Gorillaz, Lana Del Rey, Taylor Swift, Fontaines D.C.
     if any(fav.lower() in title_lower for fav in MY_FAVORITES):
         score += 100
+        
     return score
+
 
 def send_bark(header, title, link):
     sound = "alarm" if "🔥" in header else "choochoo"
