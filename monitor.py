@@ -3,7 +3,7 @@ import time
 
 # ================= 配置区 =================
 # 1. 你的 Bark 推送链接 (末尾不需要斜杠)
-BARK_BASE_URL = "https://api.day.app/eRjoaMokHx5FK9qP4qRJu3/
+BARK_BASE_URL = "https://api.day.app/eRjoaMokHx5FK9qP4qRJu3/”
 
 # 2. 你的黑名单 (不想看到的艺人)
 BLACKLIST = ["Rio Kosta", "Another Artist"]
