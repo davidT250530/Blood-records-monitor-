@@ -1,92 +1,103 @@
 import requests
+import time
 
-# ===========================================
-# 配置区域
-# ===========================================
+# ================= 配置区 =================
+# 1. 你的 Bark 推送链接 (末尾不需要斜杠)
+BARK_BASE_URL = "你的Bark链接" 
 
-# 1. 你的 Bark 链接（请务必确认结尾有斜杠 /）
-BARK_URL = "https://api.day.app/eRjoaMokHx5FK9qP4OxSNH/"
+# 2. 你的黑名单 (不想看到的艺人)
+BLACKLIST = ["Rio Kosta", "Another Artist"]
 
-# 2. 屏蔽列表：不想收到的专辑关键词（不区分大小写）
-BLACKLIST = ["Rio Kosta", "Unicorn", "test product"]
+# 3. 你的白名单 (只要出现这个艺人，不管是不是签名版，立刻最高级警报)
+MY_FAVORITES = ["Lana Del Rey", "Taylor Swift", "The 1975"]
 
-# 3. Rough Trade 关键词：只有包含这些词且不在黑名单的才提醒
-RT_KEYWORDS = ["exclusive", "signed", "limited", "numbered", "vinyl"]
+# 4. Rough Trade API 地址 (沿用你之前的成功路径)
+RT_API_URL = "https://www.roughtrade.com/en-gb/api/products?page=1&per_page=40"
+# ==========================================
 
-# ===========================================
+def get_value_score(title):
+    """智能打分系统：分数越高，越值得抢"""
+    score = 0
+    title_lower = title.lower()
+    
+    # 关键词加分
+    if "signed" in title_lower or "autographed" in title_lower:
+        score += 60  # 签名版（价值核心）
+    if "exclusive" in title_lower:
+        score += 30  # 独家版本
+    if "limited" in title_lower:
+        score += 10  # 限量标注
+        
+    # 白名单加分（心头好无脑冲）
+    if any(fav.lower() in title_lower for fav in MY_FAVORITES):
+        score += 100
+        
+    return score
 
-def send_bark(title, buy_url, site_name):
-    """发送 Bark 通知"""
-    print(f"[{site_name}] 发现目标，尝试发送通知: {title}")
-    target_url = f"{BARK_URL}{title}"
-    payload = {
-        "url": buy_url,
-        "group": site_name,
-        "sound": "calypso",
-        "isArchive": "1" 
-    }
+def send_bark(header, title, link):
+    """分级推送函数"""
+    print(f"准备推送: {header} - {title}")
+    
+    # 根据标题判断是否包含火苗图标，如果是特级预警，可以设置更响亮的铃声
+    sound = "alarm" if "🔥" in header else "choochoo"
+    
+    # 组装 Bark URL
+    push_url = f"{BARK_BASE_URL}/{header}/{title}?url={link}&sound={sound}&group=VinylMonitor"
+    
     try:
-        r = requests.get(target_url, params=payload, timeout=5)
-        print(f"Bark 返回状态: {r.status_code}")
+        requests.get(push_url, timeout=10)
     except Exception as e:
-        print(f"Bark 发送失败: {e}")
+        print(f"推送失败: {e}")
 
 def check_blood_records():
-    """监控 Blood Records"""
-    print("开始检查 Blood Records...")
-    url = "https://blood-records.co.uk/products.json"
+    print("--- 正在巡逻 Blood Records ---")
+    url = "https://www.blood-records.co.uk/products.json"
     try:
-        r = requests.get(url, timeout=10)
-        products = r.json().get('products', [])
-        for p in products:
+        data = requests.get(url, timeout=15).json()
+        for p in data['products']:
             title = p['title']
             # 过滤黑名单
-            if any(word.lower() in title.lower() for word in BLACKLIST):
+            if any(b.lower() in title.lower() for b in BLACKLIST):
                 continue
             
-            # 检查是否有货
-            if any(v['available'] for v in p['variants']):
-                # 获取第一个有货的变体 ID 构造快捷购买链接
-                v_id = next(v['id'] for v in p['variants'] if v['available'])
-                buy_url = f"https://blood-records.co.uk/cart/{v_id}:1"
-                send_bark(f"BloodRecords有货: {title}", buy_url, "BloodRecords")
-                return # 每次只报一个最新的
+            score = get_value_score(title)
+            link = f"https://www.blood-records.co.uk/products/{p['handle']}"
+            
+            if score >= 60:
+                send_bark("🔥【重磅签名】Blood Records", title, link)
+            elif score >= 30:
+                send_bark("📢【独家限量】Blood Records", title, link)
+            # 普通款就不推送了，防止骚扰
     except Exception as e:
-        print(f"Blood Records 检查出错: {e}")
+        print(f"Blood Records 错误: {e}")
 
 def check_rough_trade():
-    """监控 Rough Trade"""
-    print("开始检查 Rough Trade...")
-    # 使用 API 获取按创建时间排序的最新的 5 个产品
-    api_url = "https://api.roughtrade.com/search/products?sort=created_at_desc&per_page=5"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-        'Accept': 'application/json'
-    }
+    print("--- 正在巡逻 Rough Trade ---")
+    headers = {'User-Agent': 'Mozilla/5.0'}
     try:
-        r = requests.get(api_url, headers=headers, timeout=15)
-        data = r.json().get('data', [])
+        # 如果 RT 需要特定的 API 格式，请确保 URL 正确
+        res = requests.get(RT_API_URL, headers=headers, timeout=15).json()
+        # 注意：RT 的 JSON 结构可能与 Blood 不同，通常在 data 或 products 键下
+        products = res.get('data', []) if isinstance(res, dict) else []
         
-        for item in data:
-            attr = item['attributes']
-            title = attr['name']
-            description = attr.get('description', '') or ""
-            
-            # 1. 过滤黑名单
-            if any(word.lower() in title.lower() for word in BLACKLIST):
+        for p in products:
+            title = p.get('name', p.get('title', ''))
+            if not title or any(b.lower() in title.lower() for b in BLACKLIST):
                 continue
+                
+            score = get_value_score(title)
+            # 自动生成链接，RT 通常使用 slug 或 sku
+            slug = p.get('slug', '')
+            link = f"https://www.roughtrade.com/en-gb/product/{slug}"
             
-            # 2. 匹配限量关键词
-            full_text = (title + description).lower()
-            if any(k in full_text for k in RT_KEYWORDS):
-                slug = attr['slug']
-                product_url = f"https://www.roughtrade.com/en-gb/product/{slug}"
-                send_bark(f"RoughTrade限量: {title}", product_url, "RoughTrade")
-                return # 找到最新的限量版就停止
+            if score >= 60:
+                send_bark("🔥【极稀有签名】Rough Trade", title, link)
+            elif score >= 30:
+                send_bark("📢【值得关注】Rough Trade", title, link)
     except Exception as e:
-        print(f"Rough Trade 检查出错: {e}")
+        print(f"Rough Trade 错误: {e}")
 
 if __name__ == "__main__":
-    # 执行两个网站的检查
     check_blood_records()
     check_rough_trade()
+
