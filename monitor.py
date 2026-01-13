@@ -16,7 +16,7 @@ MY_FAVORITES = ["Lana Del Rey","joji","sabrina carpenter ","Taylor Swift", "The 
 RT_API_URL = "https://www.roughtrade.com/en-gb/api/products?page=1&per_page=40"
 # ==========================================
 
-def def get_value_score(title):
+def get_value_score(title):
     """
     智能打分系统 2.0：
     - 动效黑胶 (Zoetrope) 和 签名 (Signed) 权重最高
