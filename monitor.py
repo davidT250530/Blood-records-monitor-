@@ -9,7 +9,7 @@ BARK_BASE_URL = "https://api.day.app/eRjoaMokHx5FK9qP4qRJu3"
 BLACKLIST = ["Rio Kosta", "Another Artist"]
 
 # 3. 你的心头好名单
-MY_FAVORITES = ["Lana Del Rey", "Taylor Swift", "The 1975", "Fontaines D.C.", "Harry Styles", "Billie Eilish"]
+MY_FAVORITES = ["Lana Del Rey","joji","sabrina carpenter ","Taylor Swift", "The 1975", "Fontaines D.C.", "Harry Styles", "Billie Eilish"]
 
 
 # 4. Rough Trade API
