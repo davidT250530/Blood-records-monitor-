@@ -31,7 +31,7 @@ def send_bark(header, title, link):
     push_url = f"{BARK_BASE_URL}/{header}/{title}?url={link}&sound={sound}&group=VinylMonitor"
     requests.get(push_url, timeout=10)
 
-def def check_blood_records():
+def check_blood_records():
     print("--- 正在巡逻 Blood Records ---")
     url = "https://www.blood-records.co.uk/products.json"
     try:
