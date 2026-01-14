@@ -31,17 +31,25 @@ def send_bark(header, title, link):
     push_url = f"{BARK_BASE_URL}/{header}/{title}?url={link}&sound={sound}&group=VinylMonitor"
     requests.get(push_url, timeout=10)
 
-def check_blood_records():
+def def check_blood_records():
     print("--- 正在巡逻 Blood Records ---")
     url = "https://www.blood-records.co.uk/products.json"
     try:
         data = requests.get(url, timeout=15).json()
         for p in data['products']:
+            # --- 新增：检查是否有货 ---
+            # 只有当任意一个变体(variant)的 available 为 True 时才继续
+            is_available = any(variant.get('available', False) for variant in p.get('variants', []))
+            if not is_available:
+                continue  # 没货就直接跳过，不发通知
+            # -----------------------
+
             title = p['title']
             if any(b.lower() in title.lower() for b in BLACKLIST): continue
             
             score = get_value_score(title)
-            link = f"https://www.blood-records.co.uk/products/{p['handle']}"
+            # ... 后面的推送逻辑保持不变 ...
+
             
             # 降低门槛：只要分数达到 40（即所有上新）就推送
             if score >= 100:
