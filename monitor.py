@@ -9,7 +9,7 @@ BARK_BASE_URL = "https://api.day.app/eRjoaMokHx5FK9qP4qRJu3"
 MY_FAVORITES = ["Sabrina Carpenter", "Joji", "Gorillaz", "Bad World", "Lana Del Rey", "Taylor Swift", "Chappell Roan", "The 1975", "Zoetrope"]
 
 # 排除不感兴趣的关键词
-BLACKLIST = ["Rio Kosta"，“doves”,"Celeste”]
+BLACKLIST = ["Rio Kosta",“doves”,"Celeste”]
 # ==========================================
 
 def get_value_score(title):
